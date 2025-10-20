@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retire With Clarity Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: linear-gradient(to bottom, #f8fafc, #e2e8f0); min-height: 100vh; padding: 2rem; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 2rem; }
+        .header h1 { font-size: 2rem; font-weight: bold; color: #1e293b; margin-bottom: 0.5rem; }
+        .header p { color: #64748b; }
+        .grid { display: grid; grid-template-columns: 1fr 2fr; gap: 2rem; }
+        .panel { background: white; border-radius: 12px; padding: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .section-title { font-size: 1.25rem; font-weight: bold; color: #1e40af; margin-bottom: 1.5rem; }
+        .input-group { margin-bottom: 1.5rem; }
+        .input-label { display: block; font-size: 0.875rem; font-weight: 600; color: #334155; margin-bottom: 0.5rem; }
+        .input-hint { font-size: 0.75rem; color: #64748b; margin-bottom: 0.5rem; }
+        .input-wrapper { position: relative; }
+        .input-prefix { position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: #64748b; }
+        .input-suffix { position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); color: #64748b; }
+        input[type="number"] { width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 1rem; }
+        input[type="number"].has-prefix { padding-left: 2rem; }
+        input[type="number"].has-suffix { padding-right: 2.5rem; }
+        .calculate-btn { background: #1e40af; color: white; padding: 1rem; border-radius: 8px; border: none; font-size: 1.1rem; font-weight: bold; cursor: pointer; width: 100%; margin-top: 1rem; }
+        .calculate-btn:hover { background: #1e3a8a; }
+        .results-panel { display: flex; flex-direction: column; gap: 1.5rem; }
+        .score-panel { text-align: center; }
+        .score-title { font-size: 1.25rem; font-weight: bold; margin-bottom: 2rem; }
+        .gauge-container { position: relative; width: 200px; height: 120px; margin: 0 auto 2rem; }
+        .gauge-score { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -20%); font-size: 3rem; font-weight: bold; }
+        .gauge-label { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); font-size: 0.875rem; color: #64748b; }
+        .assessment-box { padding: 1.5rem; border-radius: 8px; border-left: 4px solid; }
+        .assessment-title { font-weight: bold; font-size: 1.1rem; margin-bottom: 0.5rem; }
+        .assessment-message { color: #64748b; font-size: 0.95rem; }
+        .warning-banner { background: #fef2f2; border-left: 4px solid #ef4444; padding: 1rem; border-radius: 8px; display: flex; align-items: flex-start; gap: 0.75rem; }
+        .warning-icon { flex-shrink: 0; color: #ef4444; font-size: 1.5rem; font-weight: bold; }
+        .warning-content h4 { font-weight: bold; margin-bottom: 0.5rem; color: #991b1b; }
+        .warning-content p { font-size: 0.9rem; color: #7f1d1d; margin-bottom: 0.5rem; }
+        .chart-panel h3 { font-size: 1.1rem; font-weight: bold; margin-bottom: 1rem; }
+        .chart-description { font-size: 0.875rem; color: #64748b; margin-bottom: 1.5rem; }
+        .chart-container { position: relative; height: 350px; margin-bottom: 1.5rem; }
+        .chart-legend { display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; }
+        .legend-item { display: flex; align-items: center; gap: 0.5rem; }
+        .legend-color { width: 16px; height: 16px; border-radius: 2px; }
+        .legend-text { font-size: 0.875rem; color: #64748b; }
+        .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        .metric-card { padding: 1rem; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; }
+        .metric-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+        .metric-label { font-size: 0.875rem; font-weight: 600; color: #64748b; }
+        .metric-value { font-size: 1.5rem; font-weight: bold; }
+        .metric-subvalue { font-size: 0.75rem; color: #64748b; margin-top: 0.25rem; }
+        .score-item { display: flex; justify-content: space-between; margin-bottom: 0.5rem; }
+        .score-item-label { font-weight: 600; }
+        .score-item-value { font-weight: bold; }
+        .score-item-rating { font-size: 0.875rem; color: #64748b; margin-top: 0.25rem; }
+        .risk-reasons { font-size: 0.875rem; color: #64748b; padding-left: 1.5rem; margin-top: 0.5rem; }
+        .recommendation-box { background: #fef3c7; padding: 1rem; border-radius: 8px; border-left: 4px solid #f59e0b; }
+        .recommendation-box p { margin-bottom: 0.5rem; color: #92400e; }
+        .placeholder { text-align: center; padding: 4rem 2rem; }
+        .placeholder h3 { font-size: 1.25rem; color: #64748b; margin-bottom: 0.5rem; }
+        .placeholder p { color: #94a3b8; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Your Retire With Clarity Dashboard</h1>
+            <p>Adjust your inputs to see how changes impact your retirement readiness</p>
+        </div>
+        <div class="grid">
+            <div class="panel">
+                <h2 class="section-title">PERSONAL DETAILS</h2>
+                <div class="input-group">
+                    <label class="input-label">Current Age</label>
+                    <input type="number" id="currentAge" value="30">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">What age do you plan to retire?</label>
+                    <input type="number" id="retirementAge" value="55">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Life Expectancy</label>
+                    <input type="number" id="lifeExpectancy" value="98">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Investable Assets</label>
+                    <p class="input-hint">Includes cash, bank funds, 401ks and IRAs</p>
+                    <div class="input-wrapper">
+                        <span class="input-prefix">$</span>
+                        <input type="number" id="investableAssets" value="1000000" class="has-prefix">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Monthly Savings Until Retirement</label>
+                    <div class="input-wrapper">
+                        <span class="input-prefix">$</span>
+                        <input type="number" id="monthlySavings" value="0" class="has-prefix">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Expected Monthly Expenses During Retirement</label>
+                    <div class="input-wrapper">
+                        <span class="input-prefix">$</span>
+                        <input type="number" id="monthlyExpenses" value="25000" class="has-prefix">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Annual Rate of Return</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="annualReturn" value="6" class="has-suffix" step="0.1">
+                        <span class="input-suffix">%</span>
+                    </div>
+                </div>
+                <h2 class="section-title">SOCIAL SECURITY</h2>
+                <div class="input-group">
+                    <label class="input-label">Avg. Annual Income Over Your Career</label>
+                    <div class="input-wrapper">
+                        <span class="input-prefix">$</span>
+                        <input type="number" id="avgAnnualIncome" value="75000" class="has-prefix">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Monthly Social Security Benefits</label>
+                    <div class="input-wrapper">
+                        <span class="input-prefix">$</span>
+                        <input type="number" id="monthlySocialSecurity" value="2655" class="has-prefix">
+                    </div>
+                </div>
+                <h2 class="section-title">OTHER INCOME</h2>
+                <div class="input-group">
+                    <label class="input-label">Additional Monthly Income</label>
+                    <p class="input-hint">Excluding Social Security</p>
+                    <div class="input-wrapper">
+                        <span class="input-prefix">$</span>
+                        <input type="number" id="additionalMonthlyIncome" value="0" class="has-prefix">
+                    </div>
+                </div>
+                <h2 class="section-title">INFLATION RATE</h2>
+                <div class="input-group">
+                    <label class="input-label">Inflation Rate</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="inflationRate" value="4.78" class="has-suffix" step="0.01">
+                        <span class="input-suffix">%</span>
+                    </div>
+                </div>
+                <button class="calculate-btn" id="calculateBtn">Calculate</button>
+            </div>
+            <div>
+                <div id="placeholderPanel" class="panel placeholder">
+                    <div style="font-size: 3rem; color: #cbd5e1; margin-bottom: 1rem;">&#128202;</div>
+                    <h3>Ready to Calculate?</h3>
+                    <p>Adjust your inputs and click Calculate to see your Retirement Health Score</p>
+                </div>
+                <div id="resultsPanel" class="results-panel hidden">
+                    <div class="panel score-panel">
+                        <h2 class="score-title">Your Retire With Clarity Health Score</h2>
+                        <div class="gauge-container">
+                            <canvas id="gaugeCanvas" width="200" height="120"></canvas>
+                            <div id="scoreValue" class="gauge-score">0</div>
+                            <div class="gauge-label">HEALTH SCORE</div>
+                        </div>
+                        <div id="assessmentBox" class="assessment-box">
+                            <h3 id="assessmentTitle" class="assessment-title"></h3>
+                            <p id="assessmentMessage" class="assessment-message"></p>
+                        </div>
+                    </div>
+                    <div id="warningBanner" class="panel warning-banner hidden">
+                        <div class="warning-icon">!</div>
+                        <div class="warning-content">
+                            <h4>Action Required</h4>
+                            <p id="warningMessage"></p>
+                            <p id="shortfallMessage"></p>
+                        </div>
+                    </div>
+                    <div class="panel chart-panel">
+                        <h3>Your Retirement Fund Projection</h3>
+                        <p class="chart-description">This chart shows your expected portfolio value from now through retirement based on your current plan</p>
+                        <div class="chart-container">
+                            <canvas id="projectionChart"></canvas>
+                        </div>
+                        <div class="chart-legend">
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #3b82f6;"></div>
+                                <span class="legend-text">Accumulation Phase</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #10b981;"></div>
+                                <span class="legend-text">Retirement Phase</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #8b5cf6; height: 2px;"></div>
+                                <span class="legend-text">Retirement Age</span>
+                            </div>
+                            <div class="legend-item" id="depletionLegend" style="display: none;">
+                                <div class="legend-color" style="background: #ef4444; height: 2px;"></div>
+                                <span class="legend-text">Depletion Age</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel">
+                        <h3 style="font-size: 1.1rem; font-weight: bold; margin-bottom: 1.5rem;">Key Metrics</h3>
+                        <div class="metrics-grid">
+                            <div class="metric-card">
+                                <div class="metric-header">
+                                    <span class="metric-label">Withdrawal Rate</span>
+                                </div>
+                                <div id="withdrawalRateValue" class="metric-value">0%</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-header">
+                                    <span class="metric-label">Portfolio Lasts</span>
+                                </div>
+                                <div id="portfolioLastsValue" class="metric-value">0 years</div>
+                                <div id="portfolioLastsSub" class="metric-subvalue"></div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-header">
+                                    <span class="metric-label">Portfolio at Retirement</span>
+                                </div>
+                                <div id="portfolioAtRetirementValue" class="metric-value">$0</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-header">
+                                    <span class="metric-label">Years Needed</span>
+                                </div>
+                                <div id="yearsNeededValue" class="metric-value">0 years</div>
+                                <div id="yearsNeededSub" class="metric-subvalue"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel">
+                        <h3 style="font-size: 1.1rem; font-weight: bold; margin-bottom: 1.5rem;">Score Breakdown</h3>
+                        <div style="padding-bottom: 1rem; border-bottom: 1px solid #e5e7eb; margin-bottom: 1rem;">
+                            <div class="score-item">
+                                <span class="score-item-label">Withdrawal Rate Score</span>
+                                <span id="withdrawalScore" class="score-item-value">0/40</span>
+                            </div>
+                            <p id="withdrawalRating" class="score-item-rating"></p>
+                        </div>
+                        <div style="padding-bottom: 1rem; border-bottom: 1px solid #e5e7eb; margin-bottom: 1rem;">
+                            <div class="score-item">
+                                <span class="score-item-label">Longevity Score</span>
+                                <span id="longevityScore" class="score-item-value">0/40</span>
+                            </div>
+                            <p id="longevityRating" class="score-item-rating"></p>
+                        </div>
+                        <div>
+                            <div class="score-item">
+                                <span class="score-item-label">Risk Penalties</span>
+                                <span id="riskPenaltiesValue" class="score-item-value" style="color: #ef4444;">0</span>
+                            </div>
+                            <ul id="riskReasons" class="risk-reasons"></ul>
+                        </div>
+                    </div>
+                    <div id="recommendationsPanel" class="panel hidden">
+                        <h3 style="font-size: 1.1rem; font-weight: bold; margin-bottom: 1rem;">Recommendations</h3>
+                        <div class="recommendation-box">
+                            <p><strong>Required Assets:</strong> <span id="requiredAssets">$0</span></p>
+                            <p><strong>Current Shortfall:</strong> <span id="assetShortfall">$0</span></p>
+                            <p id="shortfallPercentage"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        var chartInstance = null;
+
+        function RetirementCalculator(inputs) {
+            this.currentAge = inputs.currentAge || 30;
+            this.retirementAge = inputs.retirementAge;
+            this.lifeExpectancy = inputs.lifeExpectancy;
+            this.investableAssets = inputs.investableAssets;
+            this.monthlySavings = inputs.monthlySavings || 0;
+            this.monthlyExpenses = inputs.monthlyExpenses;
+            this.annualReturn = inputs.annualReturn / 100;
+            this.avgAnnualIncome = inputs.avgAnnualIncome || 0;
+            this.monthlySocialSecurity = inputs.monthlySocialSecurity || 0;
+            this.additionalMonthlyIncome = inputs.additionalMonthlyIncome || 0;
+            this.inflationRate = inputs.inflationRate / 100;
+            this.yearsUntilRetirement = this.retirementAge - this.currentAge;
+            this.yearsInRetirement = this.lifeExpectancy - this.retirementAge;
+            this.realReturnRate = this.annualReturn - this.inflationRate;
+        }
+
+        RetirementCalculator.prototype.calculateRetirementPortfolio = function() {
+            var portfolio = this.investableAssets;
+            for (var year = 0; year < this.yearsUntilRetirement; year++) {
+                portfolio = portfolio * (1 + this.annualReturn);
+                portfolio += this.monthlySavings * 12 * (1 + this.annualReturn / 2);
+            }
+            return portfolio;
+        };
+
+        RetirementCalculator.prototype.calculateWithdrawalRate = function(portfolioAtRetirement) {
+            var annualExpenses = this.monthlyExpenses * 12;
+            var annualIncome = (this.monthlySocialSecurity + this.additionalMonthlyIncome) * 12;
+            var netAnnualWithdrawal = annualExpenses - annualIncome;
+            if (portfolioAtRetirement <= 0) {
+                return netAnnualWithdrawal > 0 ? 999 : 0;
+            }
+            var withdrawalRate = (netAnnualWithdrawal / portfolioAtRetirement) * 100;
+            return Math.max(0, withdrawalRate);
+        };
+
+        RetirementCalculator.prototype.simulatePortfolioDepletion = function(portfolioAtRetirement) {
+            var portfolio = portfolioAtRetirement;
+            var annualExpenses = this.monthlyExpenses * 12;
+            var annualIncome = (this.monthlySocialSecurity + this.additionalMonthlyIncome) * 12;
+            var netWithdrawal = annualExpenses - annualIncome;
+            var yearsDepleted = 0;
+            var maxYears = this.yearsInRetirement + 10;
+            
+            for (var year = 0; year < maxYears; year++) {
+                if (portfolio <= 0) {
+                    yearsDepleted = year;
+                    break;
+                }
+                portfolio = portfolio * (1 + this.realReturnRate);
+                if (netWithdrawal > 0) {
+                    portfolio -= netWithdrawal;
+                } else {
+                    portfolio += Math.abs(netWithdrawal);
+                }
+                netWithdrawal = netWithdrawal * (1 + this.inflationRate);
+                if (year === maxYears - 1) {
+                    yearsDepleted = maxYears;
+                }
+            }
+            
+            return {
+                yearsLasted: yearsDepleted,
+                portfolioSurvivalRatio: yearsDepleted / this.yearsInRetirement,
+                depletionAge: this.retirementAge + yearsDepleted
+            };
+        };
+
+        RetirementCalculator.prototype.scoreWithdrawalRate = function(withdrawalRate) {
+            if (withdrawalRate <= 3.0) return { score: 100, rating: 'Excellent: Very Conservative' };
+            if (withdrawalRate <= 4.0) return { score: 90, rating: 'Excellent: Standard Safe Rate' };
+            if (withdrawalRate <= 5.0) return { score: 75, rating: 'Good: Moderate Risk' };
+            if (withdrawalRate <= 6.0) return { score: 60, rating: 'Fair: Elevated Risk' };
+            if (withdrawalRate <= 7.5) return { score: 40, rating: 'Concerning: High Risk' };
+            if (withdrawalRate <= 10.0) return { score: 20, rating: 'Poor: Very High Risk' };
+            return { score: 0, rating: 'Critical: Unsustainable' };
+        };
+
+        RetirementCalculator.prototype.scoreLongevity = function(survivalRatio) {
+            if (survivalRatio >= 1.20) return { score: 100, rating: 'Excellent: Surplus Cushion' };
+            if (survivalRatio >= 1.05) return { score: 90, rating: 'Excellent: Adequate Buffer' };
+            if (survivalRatio >= 0.95) return { score: 75, rating: 'Good: Cuts It Close' };
+            if (survivalRatio >= 0.85) return { score: 50, rating: 'Fair: Runs Short 5 to 15 percent' };
+            if (survivalRatio >= 0.70) return { score: 30, rating: 'Poor: Significant Shortfall' };
+            if (survivalRatio >= 0.50) return { score: 10, rating: 'Critical: Major Shortfall' };
+            return { score: 0, rating: 'Fail: Catastrophic Shortfall' };
+        };
+
+        RetirementCalculator.prototype.calculateRiskPenalties = function() {
+            var penalties = 0;
+            var reasons = [];
+            
+            if (this.retirementAge < 60) {
+                var penalty = this.retirementAge < 55 ? 15 : 10;
+                penalties += penalty;
+                reasons.push('Early retirement before 60 (penalty ' + penalty + ' pts)');
+            }
+            if (this.lifeExpectancy > 95) {
+                penalties += 5;
+                reasons.push('Extended longevity risk (penalty 5 pts)');
+            }
+            if (this.annualReturn < 0.05) {
+                penalties += 5;
+                reasons.push('Conservative returns (penalty 5 pts)');
+            }
+            if (this.inflationRate > 0.04) {
+                penalties += 5;
+                reasons.push('High inflation (penalty 5 pts)');
+            }
+            if (this.monthlySavings === 0 && this.yearsUntilRetirement > 5) {
+                penalties += 10;
+                reasons.push('No ongoing savings (penalty 10 pts)');
+            }
+            if (this.retirementAge < 62 && this.monthlySocialSecurity > 0) {
+                penalties += 15;
+                reasons.push('SS before age 62 (penalty 15 pts)');
+            }
+            
+            return { penalties: penalties, reasons: reasons };
+        };
+
+        RetirementCalculator.prototype.getOverallAssessment = function(score) {
+            if (score >= 90) {
+                return {
+                    grade: 'Excellent Planning',
+                    color: '#22c55e',
+                    bgColor: '#f0fdf4',
+                    message: 'Outstanding work! Your retirement plan is in excellent shape. You have significant cushion for market volatility and unexpected expenses.'
+                };
+            }
+            if (score >= 75) {
+                return {
+                    grade: 'Good Planning',
+                    color: '#84cc16',
+                    bgColor: '#f0fdf4',
+                    message: 'Your retirement plan is solid. Consider strategies to optimize your portfolio and build additional buffer.'
+                };
+            }
+            if (score >= 60) {
+                return {
+                    grade: 'Fair Planning',
+                    color: '#eab308',
+                    bgColor: '#fef9c3',
+                    message: 'Your plan needs improvement. Review your expenses, consider working longer, or increase savings now.'
+                };
+            }
+            if (score >= 40) {
+                return {
+                    grade: 'Concerning Planning',
+                    color: '#f97316',
+                    bgColor: '#ffedd5',
+                    message: 'Significant concerns exist. Your current plan has high risk of running out of money. Immediate adjustments needed.'
+                };
+            }
+            if (score >= 20) {
+                return {
+                    grade: 'Poor Planning',
+                    color: '#ef4444',
+                    bgColor: '#fef2f2',
+                    message: 'Your retirement plan is at high risk of failure. Major changes required - consider delaying retirement or significantly reducing expenses.'
+                };
+            }
+            return {
+                grade: 'Critical - Not Ready',
+                color: '#dc2626',
+                bgColor: '#fef2f2',
+                message: 'Your current plan will likely result in running out of money within a few years. Professional consultation strongly recommended.'
+            };
+        };
+
+        RetirementCalculator.prototype.calculateRequiredAssets = function() {
+            var annualExpenses = this.monthlyExpenses * 12;
+            var annualIncome = (this.monthlySocialSecurity + this.additionalMonthlyIncome) * 12;
+            var netAnnualNeed = annualExpenses - annualIncome;
+            
+            var withdrawalRate = 0.04;
+            if (this.yearsInRetirement > 35) withdrawalRate = 0.035;
+            if (this.yearsInRetirement > 40) withdrawalRate = 0.03;
+            if (this.yearsInRetirement < 25) withdrawalRate = 0.045;
+            if (this.yearsInRetirement < 20) withdrawalRate = 0.05;
+            
+            var requiredAtRetirement = netAnnualNeed / withdrawalRate;
+            var requiredNow = requiredAtRetirement / Math.pow(1 + this.annualReturn, this.yearsUntilRetirement);
+            
+            return Math.max(0, requiredNow);
+        };
+
+        RetirementCalculator.prototype.generateProjectionData = function() {
+            var data = [];
+            var portfolio = this.investableAssets;
+            var annualExpenses = this.monthlyExpenses * 12;
+            var annualIncome = (this.monthlySocialSecurity + this.additionalMonthlyIncome) * 12;
+            var netWithdrawal = annualExpenses - annualIncome;
+            var actualDepletionAge = null;
+            
+            for (var age = this.currentAge; age < this.retirementAge; age++) {
+                data.push({ age: age, portfolio: Math.round(portfolio) });
+                portfolio = portfolio * (1 + this.annualReturn);
+                portfolio += this.monthlySavings * 12 * (1 + this.annualReturn / 2);
+            }
+            
+            for (var age = this.retirementAge; age <= 100; age++) {
+                if (portfolio <= 0 && actualDepletionAge === null) {
+                    actualDepletionAge = age;
+                }
+                data.push({ age: age, portfolio: Math.round(Math.max(0, portfolio)) });
+                if (portfolio > 0) {
+                    portfolio = portfolio * (1 + this.realReturnRate);
+                    if (netWithdrawal > 0) {
+                        portfolio -= netWithdrawal;
+                    } else {
+                        portfolio += Math.abs(netWithdrawal);
+                    }
+                    netWithdrawal = netWithdrawal * (1 + this.inflationRate);
+                }
+            }
+            
+            return { data: data, actualDepletionAge: actualDepletionAge || 100 };
+        };
+
+        RetirementCalculator.prototype.calculate = function() {
+            var portfolioAtRetirement = this.calculateRetirementPortfolio();
+            var withdrawalRate = this.calculateWithdrawalRate(portfolioAtRetirement);
+            var depletion = this.simulatePortfolioDepletion(portfolioAtRetirement);
+            var withdrawalScore = this.scoreWithdrawalRate(withdrawalRate);
+            var longevityScore = this.scoreLongevity(depletion.portfolioSurvivalRatio);
+            var riskPenalties = this.calculateRiskPenalties();
+            
+            var rawScore = (withdrawalScore.score * 0.40) + (longevityScore.score * 0.40) + 20 - riskPenalties.penalties;
+            var finalScore = Math.max(0, Math.min(100, Math.round(rawScore)));
+            var assessment = this.getOverallAssessment(finalScore);
+            var requiredAssets = this.calculateRequiredAssets();
+            var projectionResult = this.generateProjectionData();
+            
+            return {
+                portfolioAtRetirement: Math.round(portfolioAtRetirement),
+                withdrawalRate: withdrawalRate.toFixed(2),
+                yearsPortfolioLasts: depletion.yearsLasted,
+                depletionAge: depletion.depletionAge,
+                actualDepletionAge: projectionResult.actualDepletionAge,
+                portfolioSurvivalRatio: depletion.portfolioSurvivalRatio.toFixed(2),
+                withdrawalRateScore: withdrawalScore.score,
+                withdrawalRating: withdrawalScore.rating,
+                longevityScore: longevityScore.score,
+                longevityRating: longevityScore.rating,
+                riskPenalties: riskPenalties.penalties,
+                riskReasons: riskPenalties.reasons,
+                healthScore: finalScore,
+                assessment: assessment,
+                requiredAssets: Math.round(requiredAssets),
+                assetShortfall: Math.round(Math.max(0, requiredAssets - portfolioAtRetirement)),
+                yearsInRetirement: this.yearsInRetirement,
+                projectionData: projectionResult.data,
+                currentAge: this.currentAge,
+                retirementAge: this.retirementAge
+            };
+        };
+
+        function getScoreColor(score) {
+            if (score >= 90) return '#22c55e';
+            if (score >= 75) return '#84cc16';
+            if (score >= 60) return '#eab308';
+            if (score >= 40) return '#f97316';
+            if (score >= 20) return '#ef4444';
+            return '#dc2626';
+        }
+
+        function drawGauge(score) {
+            var canvas = document.getElementById('gaugeCanvas');
+            var ctx = canvas.getContext('2d');
+            var centerX = 100;
+            var centerY = 100;
+            var radius = 80;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, Math.PI, 2 * Math.PI, false);
+            ctx.lineWidth = 20;
+            ctx.strokeStyle = '#e5e7eb';
+            ctx.lineCap = 'round';
+            ctx.stroke();
+            
+            var scoreAngle = Math.PI + (score / 100) * Math.PI;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, Math.PI, scoreAngle, false);
+            ctx.lineWidth = 20;
+            ctx.strokeStyle = getScoreColor(score);
+            ctx.lineCap = 'round';
+            ctx.stroke();
+        }
+
+        function updateChart(data, currentAge, retirementAge, depletionAge) {
+            var ctx = document.getElementById('projectionChart');
+            if (chartInstance) {
+                chartInstance.destroy();
+                chartInstance = null;
+            }
+
+            var labels = [];
+            var values = [];
+            for (var i = 0; i < data.length; i++) {
+                labels.push(data[i].age);
+                values.push(data[i].portfolio);
+            }
+            
+            var annotations = {};
+            annotations.retirement = {
+                type: 'line',
+                scaleID: 'x',
+                value: retirementAge,
+                borderColor: '#8b5cf6',
+                borderWidth: 2,
+                borderDash: [5, 5],
+                label: {
+                    display: true,
+                    content: 'Retire at ' + retirementAge,
+                    position: 'start',
+                    backgroundColor: '#8b5cf6',
+                    color: 'white',
+                    padding: 4,
+                    yAdjust: -10
+                }
+            };
+
+            if (depletionAge < 100) {
+                annotations.depletion = {
+                    type: 'line',
+                    scaleID: 'x',
+                    value: depletionAge,
+                    borderColor: '#ef4444',
+                    borderWidth: 2,
+                    borderDash: [5, 5],
+                    label: {
+                        display: true,
+                        content: 'Funds Depleted',
+                        position: 'start',
+                        backgroundColor: '#ef4444',
+                        color: 'white',
+                        padding: 4,
+                        yAdjust: -10
+                    }
+                };
+                document.getElementById('depletionLegend').style.display = 'flex';
+            } else {
+                document.getElementById('depletionLegend').style.display = 'none';
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Portfolio Value',
+                        data: values,
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Portfolio: $' + context.parsed.y.toLocaleString();
+                                }
+                            }
+                        },
+                        annotation: { annotations: annotations }
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            min: currentAge,
+                            max: 100,
+                            title: { display: true, text: 'Age' },
+                            ticks: {
+                                stepSize: 5,
+                                callback: function(value) { return value; }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Portfolio Value' },
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + (value / 1000000).toFixed(1) + 'M';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function calculateRetirement() {
+            var inputs = {
+                currentAge: parseFloat(document.getElementById('currentAge').value) || 30,
+                retirementAge: parseFloat(document.getElementById('retirementAge').value),
+                lifeExpectancy: parseFloat(document.getElementById('lifeExpectancy').value),
+                investableAssets: parseFloat(document.getElementById('investableAssets').value),
+                monthlySavings: parseFloat(document.getElementById('monthlySavings').value) || 0,
+                monthlyExpenses: parseFloat(document.getElementById('monthlyExpenses').value),
+                annualReturn: parseFloat(document.getElementById('annualReturn').value),
+                avgAnnualIncome: parseFloat(document.getElementById('avgAnnualIncome').value) || 0,
+                monthlySocialSecurity: parseFloat(document.getElementById('monthlySocialSecurity').value) || 0,
+                additionalMonthlyIncome: parseFloat(document.getElementById('additionalMonthlyIncome').value) || 0,
+                inflationRate: parseFloat(document.getElementById('inflationRate').value)
+            };
+
+            var calculator = new RetirementCalculator(inputs);
+            var results = calculator.calculate();
+
+            document.getElementById('placeholderPanel').classList.add('hidden');
+            document.getElementById('resultsPanel').classList.remove('hidden');
+            document.getElementById('scoreValue').textContent = results.healthScore;
+            document.getElementById('scoreValue').style.color = results.assessment.color;
+            drawGauge(results.healthScore);
+
+            var assessmentBox = document.getElementById('assessmentBox');
+            assessmentBox.style.background = results.assessment.bgColor;
+            assessmentBox.style.borderLeftColor = results.assessment.color;
+            document.getElementById('assessmentTitle').textContent = results.assessment.grade;
+            document.getElementById('assessmentTitle').style.color = results.assessment.color;
+            document.getElementById('assessmentMessage').textContent = results.assessment.message;
+
+            if (results.healthScore < 60) {
+                document.getElementById('warningBanner').classList.remove('hidden');
+                var yearsShort = results.yearsInRetirement + inputs.retirementAge - results.depletionAge;
+                document.getElementById('warningMessage').textContent = 'Your funds will run out at age ' + results.depletionAge + ', which is ' + yearsShort + ' years before your life expectancy.';
+                if (results.assetShortfall > 0) {
+                    document.getElementById('shortfallMessage').textContent = 'You need an additional $' + results.assetShortfall.toLocaleString() + ' in assets for a sustainable retirement.';
+                }
+            } else {
+                document.getElementById('warningBanner').classList.add('hidden');
+            }
+
+            updateChart(results.projectionData, results.currentAge, results.retirementAge, results.actualDepletionAge);
+
+            var withdrawalColor = parseFloat(results.withdrawalRate) > 6 ? '#ef4444' : '#22c55e';
+            document.getElementById('withdrawalRateValue').textContent = results.withdrawalRate + '%';
+            document.getElementById('withdrawalRateValue').style.color = withdrawalColor;
+
+            var portfolioLastsColor = results.yearsPortfolioLasts >= results.yearsInRetirement ? '#22c55e' : '#ef4444';
+            document.getElementById('portfolioLastsValue').textContent = results.yearsPortfolioLasts + ' years';
+            document.getElementById('portfolioLastsValue').style.color = portfolioLastsColor;
+            document.getElementById('portfolioLastsSub').textContent = 'Until age ' + results.depletionAge;
+
+            document.getElementById('portfolioAtRetirementValue').textContent = '$' + (results.portfolioAtRetirement / 1000000).toFixed(2) + 'M';
+            document.getElementById('portfolioAtRetirementValue').style.color = '#1e40af';
+
+            document.getElementById('yearsNeededValue').textContent = results.yearsInRetirement + ' years';
+            document.getElementById('yearsNeededValue').style.color = '#1e40af';
+            document.getElementById('yearsNeededSub').textContent = 'Age ' + inputs.retirementAge + ' to ' + inputs.lifeExpectancy;
+
+            document.getElementById('withdrawalScore').textContent = results.withdrawalRateScore + '/40';
+            document.getElementById('withdrawalScore').style.color = getScoreColor(results.withdrawalRateScore);
+            document.getElementById('withdrawalRating').textContent = results.withdrawalRating;
+
+            document.getElementById('longevityScore').textContent = results.longevityScore + '/40';
+            document.getElementById('longevityScore').style.color = getScoreColor(results.longevityScore);
+            document.getElementById('longevityRating').textContent = results.longevityRating;
+
+            document.getElementById('riskPenaltiesValue').textContent = results.riskPenalties;
+            
+            var riskList = document.getElementById('riskReasons');
+            riskList.innerHTML = '';
+            for (var i = 0; i < results.riskReasons.length; i++) {
+                var li = document.createElement('li');
+                li.textContent = results.riskReasons[i];
+                riskList.appendChild(li);
+            }
+
+            if (results.assetShortfall > 0) {
+                document.getElementById('recommendationsPanel').classList.remove('hidden');
+                document.getElementById('requiredAssets').textContent = '$' + results.requiredAssets.toLocaleString();
+                document.getElementById('assetShortfall').textContent = '$' + results.assetShortfall.toLocaleString();
+                var percentage = ((results.assetShortfall / results.portfolioAtRetirement) * 100).toFixed(0);
+                document.getElementById('shortfallPercentage').innerHTML = 'You need <strong>' + percentage + ' percent</strong> more assets for a sustainable retirement.';
+            } else {
+                document.getElementById('recommendationsPanel').classList.add('hidden');
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                document.getElementById('calculateBtn').addEventListener('click', calculateRetirement);
+            });
+        } else {
+            document.getElementById('calculateBtn').addEventListener('click', calculateRetirement);
+        }
+    </script>
+</body>
+</html>
