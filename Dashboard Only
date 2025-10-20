@@ -42,7 +42,7 @@
         .warning-content p { font-size: 0.9rem; color: #7f1d1d; margin-bottom: 0.5rem; }
         .chart-panel h3 { font-size: 1.1rem; font-weight: bold; margin-bottom: 1rem; }
         .chart-description { font-size: 0.875rem; color: #64748b; margin-bottom: 1.5rem; }
-        .chart-container { position: relative; height: 350px; margin-bottom: 1.5rem; }
+        .chart-container { position: relative; height: 350px; margin-bottom: 1.5rem; padding-top: 0.25rem; }
         .chart-legend { display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; }
         .legend-item { display: flex; align-items: center; gap: 0.5rem; }
         .legend-color { width: 16px; height: 16px; border-radius: 2px; }
