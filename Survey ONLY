@@ -150,7 +150,8 @@
     }
     
     .ghl-form-input,
-    .ghl-form-select {
+    .ghl-form-select,
+    .ghl-form-textarea {
       width: 100%;
       padding: 14px 16px;
       font-size: 16px;
@@ -159,10 +160,17 @@
       background-color: #ffffff;
       color: #2c2c2c;
       transition: border-color 0.2s ease;
+      font-family: inherit;
+    }
+    
+    .ghl-form-textarea {
+      min-height: 100px;
+      resize: vertical;
     }
     
     .ghl-form-input:focus,
-    .ghl-form-select:focus {
+    .ghl-form-select:focus,
+    .ghl-form-textarea:focus {
       outline: none;
       border-color: #00437A;
     }
@@ -381,6 +389,50 @@
       border-color: #00437A;
     }
     
+    .ghl-checkbox-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin: 20px 0;
+    }
+    
+    .ghl-checkbox-item {
+      display: flex;
+      align-items: center;
+      padding: 14px 18px;
+      background-color: #ffffff;
+      border: 2px solid #d0d0d0;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .ghl-checkbox-item:hover {
+      border-color: #00437A;
+      background-color: #f0f9f6;
+    }
+    
+    .ghl-checkbox-item.checked {
+      background-color: #00437A;
+      border-color: #00437A;
+      color: #ffffff;
+    }
+    
+    .ghl-checkbox-item input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      margin-right: 12px;
+      cursor: pointer;
+      accent-color: #00437A;
+    }
+    
+    .ghl-checkbox-label {
+      font-size: 16px;
+      font-weight: 400;
+      cursor: pointer;
+      flex: 1;
+    }
+    
     .ghl-toggle-container {
       display: flex;
       align-items: center;
@@ -495,6 +547,10 @@
         font-size: 16px;
         padding: 16px 20px;
       }
+      
+      .ghl-checkbox-label {
+        font-size: 15px;
+      }
     }
     
     @media (max-width: 480px) {
@@ -520,6 +576,10 @@
       .ghl-radio-button {
         font-size: 15px;
         padding: 14px 18px;
+      }
+      
+      .ghl-checkbox-label {
+        font-size: 14px;
       }
     }
   </style>
@@ -609,22 +669,6 @@
         <button type="button" class="ghl-form-button" onclick="ghlNextStep()">Continue</button>
       </div>
       
-      <div id="ghl-step-5" class="ghl-form-step">
-        <div class="ghl-slider-instruction">Use the slider or type your amount below. If retired use $0.</div>
-        
-        <div class="ghl-value-display-wrapper">
-          <button class="ghl-value-control-btn" onclick="ghlDecrement('savings')" type="button">−</button>
-          <div class="ghl-value-display">
-            <input type="text" class="ghl-value-display-input" id="ghl-savings-display" value="$0">
-          </div>
-          <button class="ghl-value-control-btn" onclick="ghlIncrement('savings')" type="button">+</button>
-        </div>
-        
-        <input type="range" class="ghl-slider" id="ghl-savings-slider" min="0" max="10000" value="0" step="50">
-        
-        <button type="button" class="ghl-form-button" onclick="ghlNextStep()">Continue</button>
-      </div>
-      
       <div id="ghl-step-5-5" class="ghl-form-step">
         <div class="ghl-radio-group">
           <button type="button" class="ghl-radio-button" id="ghl-assets-range-1" onclick="ghlSelectAssetsRange('under-500k')">Under $500,000</button>
@@ -637,34 +681,112 @@
         <button type="button" class="ghl-form-button" onclick="ghlNextStep()">Continue</button>
       </div>
       
-      <div id="ghl-step-6" class="ghl-form-step">
-        <div class="ghl-slider-instruction">Use the slider or type your assets below.</div>
-        
-        <div class="ghl-value-display-wrapper">
-          <button class="ghl-value-control-btn" onclick="ghlDecrement('assets')" type="button">−</button>
-          <div class="ghl-value-display">
-            <input type="text" class="ghl-value-display-input" id="ghl-assets-display" value="$ 1,000,000">
-          </div>
-          <button class="ghl-value-control-btn" onclick="ghlIncrement('assets')" type="button">+</button>
+      <div id="ghl-step-5-6" class="ghl-form-step">
+        <div class="ghl-radio-group">
+          <button type="button" class="ghl-radio-button" id="ghl-home-ownership-1" onclick="ghlSelectHomeOwnership('paid-off')">Yes - fully paid off</button>
+          <button type="button" class="ghl-radio-button" id="ghl-home-ownership-2" onclick="ghlSelectHomeOwnership('mortgage')">Yes - mortgage owing</button>
+          <button type="button" class="ghl-radio-button" id="ghl-home-ownership-3" onclick="ghlSelectHomeOwnership('no')">No</button>
         </div>
         
-        <input type="range" class="ghl-slider" id="ghl-assets-slider" min="0" max="10000000" value="1000000" step="10000">
+        <button type="button" class="ghl-form-button" onclick="ghlNextStep()">Continue</button>
+      </div>
+      
+      <div id="ghl-step-5-7" class="ghl-form-step">
+        <div class="ghl-radio-group">
+          <button type="button" class="ghl-radio-button" id="ghl-other-assets-yes" onclick="ghlSelectOtherAssets('yes')">Yes</button>
+          <button type="button" class="ghl-radio-button" id="ghl-other-assets-no" onclick="ghlSelectOtherAssets('no')">No</button>
+        </div>
+        
+        <button type="button" class="ghl-form-button" onclick="ghlNextStep()">Continue</button>
+      </div>
+      
+      <div id="ghl-step-6" class="ghl-form-step">
+        <div class="ghl-form-group">
+          <label class="ghl-form-label" for="ghl-biggest-concern">What's your biggest question or concern about retirement? (E.g., Do I have enough?, How do I draw income?, How do I invest safely?)</label>
+          <textarea class="ghl-form-textarea" id="ghl-biggest-concern" name="biggest-concern"></textarea>
+        </div>
+        
+        <div class="ghl-form-group">
+          <label class="ghl-form-label">What would you most like help with right now? (Tick all that apply)</label>
+          <div class="ghl-checkbox-group">
+            <label class="ghl-checkbox-item" id="ghl-help-retire">
+              <input type="checkbox" value="retire" onchange="ghlToggleCheckbox(this, 'ghl-help-retire')">
+              <span class="ghl-checkbox-label">Knowing when I can retire</span>
+            </label>
+            <label class="ghl-checkbox-item" id="ghl-help-need">
+              <input type="checkbox" value="need" onchange="ghlToggleCheckbox(this, 'ghl-help-need')">
+              <span class="ghl-checkbox-label">Understanding how much I'll need</span>
+            </label>
+            <label class="ghl-checkbox-item" id="ghl-help-income">
+              <input type="checkbox" value="income" onchange="ghlToggleCheckbox(this, 'ghl-help-income')">
+              <span class="ghl-checkbox-label">Creating a plan to draw income from my wealth</span>
+            </label>
+            <label class="ghl-checkbox-item" id="ghl-help-investments">
+              <input type="checkbox" value="investments" onchange="ghlToggleCheckbox(this, 'ghl-help-investments')">
+              <span class="ghl-checkbox-label">Help managing investments</span>
+            </label>
+            <label class="ghl-checkbox-item" id="ghl-help-tax">
+              <input type="checkbox" value="tax" onchange="ghlToggleCheckbox(this, 'ghl-help-tax')">
+              <span class="ghl-checkbox-label">Reducing tax</span>
+            </label>
+            <label class="ghl-checkbox-item" id="ghl-help-confident">
+              <input type="checkbox" value="confident" onchange="ghlToggleCheckbox(this, 'ghl-help-confident')">
+              <span class="ghl-checkbox-label">Feeling more confident about my financial future</span>
+            </label>
+            <label class="ghl-checkbox-item" id="ghl-help-other">
+              <input type="checkbox" value="other" onchange="ghlToggleCheckbox(this, 'ghl-help-other'); ghlToggleOtherField('ghl-help-other-field')">
+              <span class="ghl-checkbox-label">Other (please specify)</span>
+            </label>
+          </div>
+        </div>
+        
+        <div class="ghl-form-group" id="ghl-help-other-field" style="display: none;">
+          <label class="ghl-form-label" for="ghl-help-other-text">If other, please specify here</label>
+          <textarea class="ghl-form-textarea" id="ghl-help-other-text" name="help-other-text"></textarea>
+        </div>
         
         <button type="button" class="ghl-form-button" onclick="ghlNextStep()">Continue</button>
       </div>
       
       <div id="ghl-step-7" class="ghl-form-step">
-        <div class="ghl-slider-instruction">Use the slider or type your amount below.</div>
-        
-        <div class="ghl-value-display-wrapper">
-          <button class="ghl-value-control-btn" onclick="ghlDecrement('income')" type="button">−</button>
-          <div class="ghl-value-display">
-            <input type="text" class="ghl-value-display-input" id="ghl-income-display" value="$ 6,000">
+        <div class="ghl-form-group">
+          <label class="ghl-form-label">Why are you exploring financial advice now? (Tick all that apply)</label>
+          <div class="ghl-checkbox-group">
+            <label class="ghl-checkbox-item" id="ghl-advice-approaching">
+              <input type="checkbox" value="approaching" onchange="ghlToggleCheckbox(this, 'ghl-advice-approaching')">
+              <span class="ghl-checkbox-label">Approaching retirement</span>
+            </label>
+            <label class="ghl-checkbox-item" id="ghl-advice-retired">
+              <input type="checkbox" value="retired" onchange="ghlToggleCheckbox(this, 'ghl-advice-retired')">
+              <span class="ghl-checkbox-label">Already retired</span>
+            </label>
+            <label class="ghl-checkbox-item" id="ghl-advice-sold">
+              <input type="checkbox" value="sold" onchange="ghlToggleCheckbox(this, 'ghl-advice-sold')">
+              <span class="ghl-checkbox-label">Sold a business or asset</span>
+            </label>
+            <label class="ghl-checkbox-item" id="ghl-advice-support">
+              <input type="checkbox" value="support" onchange="ghlToggleCheckbox(this, 'ghl-advice-support')">
+              <span class="ghl-checkbox-label">I want better support and long-term guidance</span>
+            </label>
+            <label class="ghl-checkbox-item" id="ghl-advice-management">
+              <input type="checkbox" value="management" onchange="ghlToggleCheckbox(this, 'ghl-advice-management')">
+              <span class="ghl-checkbox-label">I want professional investment management</span>
+            </label>
+            <label class="ghl-checkbox-item" id="ghl-advice-inheritance">
+              <input type="checkbox" value="inheritance" onchange="ghlToggleCheckbox(this, 'ghl-advice-inheritance')">
+              <span class="ghl-checkbox-label">Received an inheritance or lump sum</span>
+            </label>
+            <label class="ghl-checkbox-item" id="ghl-advice-other">
+              <input type="checkbox" value="other" onchange="ghlToggleCheckbox(this, 'ghl-advice-other'); ghlToggleOtherField('ghl-advice-other-field')">
+              <span class="ghl-checkbox-label">Other (please specify)</span>
+            </label>
           </div>
-          <button class="ghl-value-control-btn" onclick="ghlIncrement('income')" type="button">+</button>
         </div>
         
-        <input type="range" class="ghl-slider" id="ghl-income-slider" min="0" max="50000" value="6000" step="100">
+        <div class="ghl-form-group" id="ghl-advice-other-field" style="display: none;">
+          <label class="ghl-form-label" for="ghl-advice-other-text">If you are seeking advice for other reasons, please specify here</label>
+          <textarea class="ghl-form-textarea" id="ghl-advice-other-text" name="advice-other-text"></textarea>
+        </div>
         
         <button type="button" class="ghl-form-button" onclick="ghlNextStep()">Continue</button>
       </div>
@@ -716,15 +838,15 @@
   <script>
     (function() {
       let currentStep = 1;
-      const formData = {};
+      const formData = {
+        helpWith: [],
+        exploringAdvice: []
+      };
       
       const sliderConfigs = {
         'age': { min: 18, max: 100, step: 1, format: 'number' },
         'work-years': { min: 0, max: 50, step: 1, format: 'number' },
-        'retired-years': { min: 0, max: 50, step: 1, format: 'number' },
-        'savings': { min: 0, max: 10000, step: 50, format: 'currency' },
-        'assets': { min: 0, max: 10000000, step: 10000, format: 'currency' },
-        'income': { min: 0, max: 50000, step: 100, format: 'currency' }
+        'retired-years': { min: 0, max: 50, step: 1, format: 'number' }
       };
       
       window.ghlIncrement = function(type) {
@@ -772,6 +894,25 @@
         });
       }
       
+      window.ghlToggleCheckbox = function(checkbox, itemId) {
+        const item = document.getElementById(itemId);
+        if (checkbox.checked) {
+          item.classList.add('checked');
+        } else {
+          item.classList.remove('checked');
+        }
+      };
+      
+      window.ghlToggleOtherField = function(fieldId) {
+        const field = document.getElementById(fieldId);
+        const checkbox = event.target;
+        if (checkbox.checked) {
+          field.style.display = 'block';
+        } else {
+          field.style.display = 'none';
+        }
+      };
+      
       const stepContent = {
         2: {
           title: "Thanks{firstname}!",
@@ -793,24 +934,29 @@
           subtitle: "This helps us understand how your savings have held up and what to expect going forward.",
           testimonial: null
         },
-        5: {
-          title: "How much are you saving monthly?",
-          subtitle: "Count everything: what you put in, employer matches, and any automatic transfers to savings.",
-          testimonial: null
-        },
         '5-5': {
           title: "How much do you have in assets, including your partner?",
           subtitle: "An estimate is fine. This helps us understand your overall financial picture.",
           testimonial: null
         },
+        '5-6': {
+          title: "Do you own your own home?",
+          subtitle: "Understanding your home ownership status helps us provide better retirement guidance.",
+          testimonial: null
+        },
+        '5-7': {
+          title: "Do you have other assets?",
+          subtitle: "E.g. investment property, shares, savings, business interests",
+          testimonial: null
+        },
         6: {
-          title: "What's your total retirement savings?",
-          subtitle: "Add up cash, bank accounts, 401(k)s, IRAs, and investment accounts. Don't include your home or other property.",
+          title: "Let's understand your retirement goals",
+          subtitle: "Your answers help us provide personalized guidance for your situation.",
           testimonial: null
         },
         7: {
-          title: "What will you spend monthly in retirement?",
-          subtitle: "Think about your current expenses, then adjust for the lifestyle you want in retirement.",
+          title: "Tell us about your situation",
+          subtitle: "This helps us understand where you are in your financial journey.",
           testimonial: null
         },
         8: {
@@ -831,11 +977,12 @@
         3: 30,
         '3-5': 40,
         4: 40,
-        5: 50,
-        '5-5': 60,
-        6: 70,
-        7: 80,
-        8: 90,
+        '5-5': 50,
+        '5-6': 60,
+        '5-7': 70,
+        6: 80,
+        7: 90,
+        8: 95,
         9: 100
       };
       
@@ -900,13 +1047,9 @@
         } else if (currentStep === '3-5') {
           formData.yearsToWork = document.getElementById('ghl-work-years-slider').value;
           currentStepElement.classList.remove('active');
-          currentStep = 5;
+          currentStep = '5-5';
         } else if (currentStep === 4) {
           formData.retiredYears = document.getElementById('ghl-retired-years-slider').value;
-          currentStepElement.classList.remove('active');
-          currentStep = 5;
-        } else if (currentStep === 5) {
-          formData.monthlySavings = document.getElementById('ghl-savings-slider').value;
           currentStepElement.classList.remove('active');
           currentStep = '5-5';
         } else if (currentStep === '5-5') {
@@ -915,13 +1058,41 @@
             return;
           }
           currentStepElement.classList.remove('active');
+          currentStep = '5-6';
+        } else if (currentStep === '5-6') {
+          if (!formData.hasOwnProperty('homeOwnership')) {
+            alert('Please select a home ownership option');
+            return;
+          }
+          currentStepElement.classList.remove('active');
+          currentStep = '5-7';
+        } else if (currentStep === '5-7') {
+          if (!formData.hasOwnProperty('otherAssets')) {
+            alert('Please select Yes or No');
+            return;
+          }
+          currentStepElement.classList.remove('active');
           currentStep = 6;
         } else if (currentStep === 6) {
-          formData.savedAssets = document.getElementById('ghl-assets-slider').value;
+          formData.biggestConcern = document.getElementById('ghl-biggest-concern').value;
+          
+          formData.helpWith = [];
+          document.querySelectorAll('#ghl-step-6 input[type="checkbox"]:checked').forEach(checkbox => {
+            formData.helpWith.push(checkbox.value);
+          });
+          
+          formData.helpOtherText = document.getElementById('ghl-help-other-text').value;
+          
           currentStepElement.classList.remove('active');
           currentStep = 7;
         } else if (currentStep === 7) {
-          formData.monthlyIncome = document.getElementById('ghl-income-slider').value;
+          formData.exploringAdvice = [];
+          document.querySelectorAll('#ghl-step-7 input[type="checkbox"]:checked').forEach(checkbox => {
+            formData.exploringAdvice.push(checkbox.value);
+          });
+          
+          formData.adviceOtherText = document.getElementById('ghl-advice-other-text').value;
+          
           currentStepElement.classList.remove('active');
           currentStep = 8;
         } else if (currentStep === 8) {
@@ -951,6 +1122,21 @@
       window.ghlSelectAssetsRange = function(range) {
         formData.assetsRange = range;
         document.querySelectorAll('.ghl-radio-button').forEach(btn => btn.classList.remove('selected'));
+        event.target.classList.add('selected');
+      };
+      
+      window.ghlSelectHomeOwnership = function(ownership) {
+        formData.homeOwnership = ownership;
+        document.getElementById('ghl-home-ownership-1').classList.remove('selected');
+        document.getElementById('ghl-home-ownership-2').classList.remove('selected');
+        document.getElementById('ghl-home-ownership-3').classList.remove('selected');
+        event.target.classList.add('selected');
+      };
+      
+      window.ghlSelectOtherAssets = function(hasAssets) {
+        formData.otherAssets = hasAssets;
+        document.getElementById('ghl-other-assets-yes').classList.remove('selected');
+        document.getElementById('ghl-other-assets-no').classList.remove('selected');
         event.target.classList.add('selected');
       };
       
@@ -1008,39 +1194,9 @@
       });
       setupValueDisplayInput('ghl-retired-years-display', 'ghl-retired-years-slider', 'number');
       
-      const savingsSlider = document.getElementById('ghl-savings-slider');
-      const savingsDisplay = document.getElementById('ghl-savings-display');
-      savingsSlider.addEventListener('input', function() {
-        savingsDisplay.value = '$' + parseInt(this.value).toLocaleString();
-        const percent = ((this.value - this.min) / (this.max - this.min)) * 100;
-        this.style.background = `linear-gradient(to right, #00437A 0%, #00437A ${percent}%, #d0d0d0 ${percent}%, #d0d0d0 100%)`;
-      });
-      setupValueDisplayInput('ghl-savings-display', 'ghl-savings-slider', 'currency');
-      
-      const assetsSlider = document.getElementById('ghl-assets-slider');
-      const assetsDisplay = document.getElementById('ghl-assets-display');
-      assetsSlider.addEventListener('input', function() {
-        assetsDisplay.value = '$ ' + parseInt(this.value).toLocaleString();
-        const percent = ((this.value - this.min) / (this.max - this.min)) * 100;
-        this.style.background = `linear-gradient(to right, #00437A 0%, #00437A ${percent}%, #d0d0d0 ${percent}%, #d0d0d0 100%)`;
-      });
-      setupValueDisplayInput('ghl-assets-display', 'ghl-assets-slider', 'currency');
-      
-      const incomeSlider = document.getElementById('ghl-income-slider');
-      const incomeDisplay = document.getElementById('ghl-income-display');
-      incomeSlider.addEventListener('input', function() {
-        incomeDisplay.value = '$ ' + parseInt(this.value).toLocaleString();
-        const percent = ((this.value - this.min) / (this.max - this.min)) * 100;
-        this.style.background = `linear-gradient(to right, #00437A 0%, #00437A ${percent}%, #d0d0d0 ${percent}%, #d0d0d0 100%)`;
-      });
-      setupValueDisplayInput('ghl-income-display', 'ghl-income-slider', 'currency');
-      
       ageSlider.dispatchEvent(new Event('input'));
       workYearsSlider.dispatchEvent(new Event('input'));
       retiredYearsSlider.dispatchEvent(new Event('input'));
-      savingsSlider.dispatchEvent(new Event('input'));
-      assetsSlider.dispatchEvent(new Event('input'));
-      incomeSlider.dispatchEvent(new Event('input'));
     })();
   </script>
 </div>
